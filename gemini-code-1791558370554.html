@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Kelasku - Smart Student Planner & AI Hub</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;700;800&display=swap">
+<style>
+:root{
+  box-sizing:border-box;
+  --bg:#f8f4f5; --panel:#ffffff; --card:#ffffff; --ink:#1f1a1c; --mute:#7b6f73; 
+  --line:#f0e6e8; --red:#e11d2e; --red2:#a80f1c; --tint:#fdeaec; --inp:#f6f1f2; 
+  --amber:#b7791f; --btn:#1f1a1c; --btni:#fff;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0e0a0b; --panel:#1a1214; --card:#251a1d; --ink:#f6eef0; --mute:#b3a1a6; 
+    --line:#35262a; --red:#ff4d5e; --red2:#b3121f; --tint:#3a1a20; --inp:#2d2124; --amber:#f2c14e; --btn:#f6eef0; --btni:#1a1214;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0e0a0b; --panel:#1a1214; --card:#251a1d; --ink:#f6eef0; --mute:#b3a1a6; 
+  --line:#35262a; --red:#ff4d5e; --red2:#b3121f; --tint:#3a1a20; --inp:#2d2124; --amber:#f2c14e; --btn:#f6eef0; --btni:#1a1214;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14.5px/1.5 "Plus Jakarta Sans","Segoe UI",system-ui,sans-serif}
+.ic{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+button,input,select,textarea{font:inherit;color:inherit}
+button{background:var(--btn);color:var(--btni);border:0;border-radius:999px;padding:9px 18px;cursor:pointer;font-weight:700;transition:transform .15s ease}
+button:active{transform:scale(0.97)}
+button.soft{background:var(--tint);color:var(--red)}
+a{color:inherit;text-decoration:none}
+
+/* Loading Screen */
+#loadingScreen{position:fixed;inset:0;background:var(--bg);z-index:9999;display:grid;place-items:center;transition:opacity .4s ease,visibility .4s ease}
+#loadingScreen.hide{opacity:0;visibility:hidden}
+.loader-box{text-align:center;display:flex;flex-direction:column;align-items:center;gap:16px}
+.spinner-ring{width:54px;height:54px;border:4px solid var(--tint);border-top:4px solid var(--red);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.shell{display:flex;max-width:1200px;margin:16px auto;background:var(--panel);border-radius:32px;overflow:hidden;box-shadow:0 24px 48px -24px rgba(225,29,46,.2)}
+.side{width:76px;flex:none;background:linear-gradient(180deg,var(--red),var(--red2));margin:16px 0;border-radius:0 24px 24px 0;padding:16px 0;display:flex;flex-direction:column;align-items:center;gap:10px;position:sticky;top:16px;height:calc(100vh - 32px);color:#fff}
+.sb{width:44px;height:44px;border-radius:14px;display:grid;place-items:center;opacity:.8;transition:.2s}
+.sb:hover{opacity:1;transform:scale(1.05)}.sb.on{background:#fff;color:var(--red);opacity:1}
+.logo{width:44px;height:44px;border-radius:14px;background:#fff;color:var(--red);display:grid;place-items:center;margin-bottom:8px}
+.sp{flex:1}
+.mainc{flex:1;min-width:0;padding:24px 28px 40px}
+
+.topbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:24px}
+.nav{display:flex;gap:12px;font-weight:700;overflow-x:auto;padding-bottom:4px}
+.nav button{background:transparent;color:var(--mute);padding:6px 2px;border-radius:0;font-size:.9rem}
+.nav button.on{color:var(--ink);box-shadow:inset 0 -3px 0 var(--red)}
+.search{flex:1;min-width:140px;max-width:240px;display:flex;align-items:center;gap:8px;background:var(--inp);border-radius:999px;padding:0 14px;color:var(--mute)}
+.search input{background:none;border:0;padding:8px 0;width:100%;outline:0}
+.seg{display:flex;background:var(--tint);border-radius:999px;padding:3px}.seg button{background:transparent;color:var(--mute);padding:5px 10px;font-size:.8rem}.seg button.on{background:var(--red);color:#fff}
+
+.intro{display:grid;grid-template-columns:1.2fr 1.8fr;gap:20px;align-items:center;margin-bottom:24px}
+h1{font-size:clamp(1.5rem,3vw,2.1rem);line-height:1.2;margin:0 0 6px;font-weight:800}h1 em{font-style:normal;color:var(--red)}
+.lead{color:var(--mute);margin:0;font-size:.95rem}
+
+.feat{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px}
+.fc{background:var(--card);border-radius:22px;padding:16px;box-shadow:0 10px 24px -16px rgba(120,20,30,.3);display:flex;flex-direction:column;gap:6px;border:1px solid var(--line);transition:.2s}
+.fc:hover{transform:translateY(-3px)}
+.fi{width:36px;height:36px;border-radius:12px;background:var(--tint);color:var(--red);display:grid;place-items:center}
+.fc b.n{font-size:1.5rem;line-height:1;font-weight:800}.fc small{color:var(--mute);font-size:.8rem}
+
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:24px;padding:20px;box-shadow:0 10px 24px -18px rgba(120,20,30,.3);min-width:0}
+.card h2{margin:0 0 14px;font-size:1.05rem;font-weight:800}
+.hd{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:14px}
+.chip{font-size:.72rem;font-weight:800;border-radius:999px;padding:3px 10px;background:var(--tint);color:var(--red)}
+.chip.am{background:#fff1d1;color:#7a5200}.chip.ok{background:#e1f6e8;color:#14753a}
+
+.note{display:flex;gap:12px;align-items:center;padding:12px;border-radius:16px;margin-bottom:8px;background:var(--inp)}
+.note.hi{border:1px solid var(--red);background:var(--tint)}
+.nic{width:34px;height:34px;border-radius:10px;background:var(--tint);color:var(--red);display:grid;place-items:center}
+.note div{flex:1;min-width:0}.note b{display:block;font-size:.9rem}.note small{color:var(--mute);font-size:.8rem}
+
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.row>*{flex:1;min-width:110px}
+input[type=text],input[type=time],input[type=date],select,textarea{background:var(--inp);border:1px solid var(--line);border-radius:999px;padding:10px 16px;width:100%}
+textarea{border-radius:18px;resize:vertical;min-height:90px}
+.days{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}.days label{display:flex;align-items:center;gap:4px;background:var(--inp);border-radius:999px;padding:5px 10px;font-size:.85rem}.days input{width:16px;height:16px}
+.hint{color:var(--mute);font-size:.84rem;margin:6px 0 0}.empty{color:var(--mute);padding:10px 0;text-align:center;font-size:.9rem}
+
+.tk{display:flex;gap:10px;align-items:center;padding:10px;border-radius:14px;background:var(--inp);margin-bottom:8px}
+.tk .tt{flex:1;min-width:0;font-size:.9rem}
+.pbar{height:8px;border-radius:999px;background:var(--tint);overflow:hidden;margin:6px 0 14px}.pbar i{display:block;height:100%;background:var(--red);border-radius:999px;transition:width .6s}
+
+.pg{display:none}.pg.on{display:block}
+.h3d{height:220px;border-radius:20px;background:radial-gradient(circle at 50% 65%,var(--tint),transparent 72%);position:relative;overflow:hidden}
+.h3d canvas{width:100%!important;height:100%!important;display:block}
+
+.modal{position:fixed;inset:0;background:rgba(20,5,8,.6);display:none;place-items:center;padding:16px;z-index:40;backdrop-filter:blur(4px)}
+.modal.on{display:grid}.modal .card{width:100%;max-width:440px;position:relative}
+.mx{position:absolute;top:14px;right:14px;padding:4px 10px;font-size:.8rem}
+
+.fab{position:fixed;right:20px;bottom:20px;z-index:30;background:linear-gradient(135deg,var(--red),var(--red2));color:#fff;box-shadow:0 12px 24px -8px rgba(225,29,46,.6);display:flex;gap:8px;align-items:center;padding:12px 20px;font-weight:700}
+.fab[hidden],.aip[hidden]{display:none}
+.aip{position:fixed;right:20px;bottom:20px;z-index:35;width:min(360px,calc(100vw - 24px));max-height:560px;display:flex;flex-direction:column;gap:10px;padding:16px;box-shadow:0 20px 40px rgba(0,0,0,.25)}
+.msgs{flex:1;overflow:auto;display:flex;flex-direction:column;gap:8px;min-height:180px;max-height:300px}
+.bb{max-width:88%;padding:10px 14px;border-radius:16px;font-size:.9rem;white-space:pre-wrap;overflow-wrap:anywhere}
+.bb.u{align-self:flex-end;background:var(--red);color:#fff;border-bottom-right-radius:4px}
+.bb.a{align-self:flex-start;background:var(--inp);border-bottom-left-radius:4px}
+.ain{display:flex;gap:6px}.ain input{flex:1}
+
+@media(max-width:860px){
+  .shell{flex-direction:column;margin:8px;border-radius:24px}
+  .side{width:auto;height:auto;position:static;flex-direction:row;border-radius:0 0 24px 24px;margin:0;padding:8px;justify-content:center}
+  .side .sp,.logo{display:none}
+  .grid,.intro,.feat{grid-template-columns:1fr}
+}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body>
+
+<div id="loadingScreen">
+  <div class="loader-box">
+    <div class="spinner-ring"></div>
+    <b style="font-size:1.05rem;">Memuat Kelasku...</b>
+    <small style="color:var(--mute)">Smart Student Planner & AI Hub</small>
+  </div>
+</div>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<symbol id="i-home" viewBox="0 0 24 24"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h5v-6h4v6h5V10"/></symbol>
+<symbol id="i-cal" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/></symbol>
+<symbol id="i-check" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M8 12l3 3 5-6"/></symbol>
+<symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 9a6 6 0 1 1 12 0c0 6 2 7 2 7H4s2-1 2-7z"/><path d="M10 20a2 2 0 0 0 4 0"/></symbol>
+<symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+<symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></symbol>
+<symbol id="i-book" viewBox="0 0 24 24"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M4 19V5M9 7h6"/></symbol>
+<symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+<symbol id="i-spark" viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/></symbol>
+<symbol id="i-users" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></symbol>
+<symbol id="i-timer" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></symbol>
+</defs></svg>
+
+<div class="shell">
+<aside class="side" aria-label="Menu">
+  <div class="logo"><svg class="ic"><use href="#i-home"/></svg></div>
+  <button class="sb on" data-pg="home" title="Beranda"><svg class="ic"><use href="#i-home"/></svg></button>
+  <button class="sb" data-pg="planner" title="Planner"><svg class="ic"><use href="#i-check"/></svg></button>
+  <button class="sb" data-pg="hub" title="Class Hub"><svg class="ic"><use href="#i-users"/></svg></button>
+  <button class="sb" data-pg="focus" title="Focus Timer"><svg class="ic"><use href="#i-timer"/></svg></button>
+  <button class="sb" data-pg="aihub" title="AI Assistant"><svg class="ic"><use href="#i-spark"/></svg></button>
+  <span class="sp"></span>
+  <button class="sb" data-pg="set" title="Pengaturan"><svg class="ic"><use href="#i-book"/></svg></button>
+</aside>
+
+<div class="mainc">
+<div class="topbar">
+  <nav class="nav" aria-label="Navigasi">
+    <button class="nl on" data-pg="home">Hari Ini</button>
+    <button class="nl" data-pg="planner">Planner</button>
+    <button class="nl" data-pg="hub">Class Hub</button>
+    <button class="nl" data-pg="focus">Focus</button>
+    <button class="nl" data-pg="aihub">AI Tutor</button>
+  </nav>
+  <label class="search"><svg class="ic"><use href="#i-search"/></svg><input id="q" type="text" placeholder="Cari mapel..."></label>
+  <span class="seg"><button id="thL">Terang</button><button id="thD">Gelap</button></span>
+  <button data-open="mC">+ Jadwal</button>
+</div>
+
+<!-- 1. BERANDA "HARI INI" -->
+<section class="pg on" id="pg-home">
+  <div class="intro">
+    <div>
+      <h1 id="hi"></h1>
+      <p class="lead" id="dt"></p>
+    </div>
+    <div class="h3d" id="h3d" role="img" aria-label="Ilustrasi 3D"></div>
+  </div>
+
+  <!-- Gamifikasi Level & XP -->
+  <div class="card" style="margin-bottom:20px; display:flex; align-items:center; gap:16px; padding:16px 20px;">
+    <div style="background:var(--red); color:#fff; width:46px; height:46px; border-radius:14px; display:grid; place-items:center; font-weight:800;" id="userLevel">Lv.1</div>
+    <div style="flex:1">
+      <div style="display:flex; justify-content:space-between; font-weight:700; font-size:0.85rem; margin-bottom:4px;">
+        <span>Siswa Teladan</span>
+        <span id="userXpText">0 / 100 XP</span>
+      </div>
+      <div class="pbar" style="margin:0"><i id="xpBar" style="width:0%"></i></div>
+    </div>
+    <span class="chip am">Task Master 🏆</span>
+  </div>
+
+  <div class="feat">
+    <div class="fc"><div class="fi"><svg class="ic"><use href="#i-book"/></svg></div><b class="n" id="fK">0</b><small>Kelas Hari Ini</small></div>
+    <div class="fc"><div class="fi"><svg class="ic"><use href="#i-check"/></svg></div><b class="n" id="fT">0</b><small>Tugas Aktif</small></div>
+    <div class="fc" style="cursor:pointer" onclick="go('focus')"><div class="fi"><svg class="ic"><use href="#i-timer"/></svg></div><b class="n">Pom</b><small>Focus Mode</small></div>
+    <div class="fc" style="cursor:pointer" onclick="go('aihub')"><div class="fi"><svg class="ic"><use href="#i-spark"/></svg></div><b class="n">AI</b><small>Tutor Pintar</small></div>
+  </div>
+
+  <div class="grid">
+    <section class="card"><div class="hd"><h2>Pengingat & Alarm</h2><span class="chip" id="nC">0</span></div><div id="notes"></div></section>
+    <section class="card"><div class="hd"><h2>Tugas Prioritas</h2></div><div id="near"></div></section>
+  </div>
+</section>
+
+<!-- 2. SMART PLANNER -->
+<section class="pg" id="pg-planner">
+  <div class="grid">
+    <section class="card">
+      <div class="hd"><h2>Jadwal Pelajaran</h2><button class="soft" data-open="mC">+ Tambah</button></div>
+      <div id="schedList"></div>
+    </section>
+    <section class="card">
+      <div class="hd"><h2>Daftar Tugas & Deadline</h2><button class="soft" data-open="mT">+ Tambah</button></div>
+      <div class="hint" id="pt" style="margin:0"></div>
+      <div class="pbar"><i id="pb" style="width:0"></i></div>
+      <label class="days" style="margin-bottom:12px"><input type="checkbox" id="onlyOpen" checked> Sembunyikan tugas selesai</label>
+      <div id="taskList"></div>
+    </section>
+  </div>
+</section>
+
+<!-- 3. CLASS HUB -->
+<section class="pg" id="pg-hub">
+  <div class="grid">
+    <section class="card">
+      <div class="hd"><h2>Papan Pengumuman Kelas</h2><button class="soft" onclick="addAnnouncement()">+ Buat</button></div>
+      <div id="annList" style="display:flex; flex-direction:column; gap:10px;"></div>
+    </section>
+    <section class="card">
+      <div class="hd"><h2>Berbagi Catatan & Materi</h2><button class="soft" onclick="shareNote()">+ Upload</button></div>
+      <div id="noteList" style="display:flex; flex-direction:column; gap:10px;"></div>
+    </section>
+  </div>
+</section>
+
+<!-- 4. FOCUS MODE (POMODORO) -->
+<section class="pg" id="pg-focus">
+  <div class="card" style="max-width:540px; margin:0 auto; text-align:center;">
+    <h2>Focus Timer (Pomodoro)</h2>
+    <p class="hint">Fokus belajar tanpa gangguan untuk hasil maksimal.</p>
+    <div style="background:var(--inp); border-radius:24px; padding:24px; margin:20px 0; border:1px solid var(--line);">
+      <div id="pTimer" style="font-size:3.2rem; font-weight:800; color:var(--red); margin-bottom:8px;">25:00</div>
+      <div style="display:flex; justify-content:center; gap:10px;">
+        <button id="pStart" style="background:var(--red); color:#fff; padding:10px 22px;">▶ Mulai</button>
+        <button class="soft" id="pReset">↺ Reset</button>
+      </div>
+    </div>
+    <div style="text-align:left">
+      <b>Target Hari Ini:</b>
+      <div class="row"><input type="text" id="targetIn" placeholder="Tulis target belajarmu..."></div>
+      <div class="row"><button class="soft" onclick="saveTarget()">Simpan Target</button></div>
+      <div id="targetOut" class="hint" style="margin-top:8px">Belum ada target.</div>
+    </div>
+  </div>
+</section>
+
+<!-- 5. AI TUTOR & KUIS -->
+<section class="pg" id="pg-aihub">
+  <div class="grid">
+    <section class="card">
+      <div class="hd"><h2>AI Study Assistant (Tanya Materi)</h2><span class="chip">Real AI Solver</span></div>
+      <p class="hint" style="margin-top:0">Pilih mode penjelasan:</p>
+      <div class="row" style="margin-bottom:10px;">
+        <select id="aiMode">
+          <option value="simple">Super Simpel & Ringkas</option>
+          <option value="step" selected>Langkah demi Langkah (Step-by-Step)</option>
+          <option value="full">Pembahasan Lengkap Teori & Contoh</option>
+        </select>
+      </div>
+      <div class="ain" style="margin-bottom:10px;">
+        <input type="text" id="tutorIn" placeholder="Tanyakan soal atau materi pelajaran...">
+        <button class="soft" onclick="askAITutor()">Kirim</button>
+      </div>
+      <div id="tutorOut" style="background:var(--inp); border-radius:16px; padding:14px; min-height:140px; max-height:240px; overflow:auto; font-size:0.9rem; border:1px solid var(--line);">
+        Tanyakan materi apa saja, AI tutor siap menjelaskan dengan detail.
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="hd"><h2>Smart Quiz Latihan</h2><span class="chip ok">+50 XP Valid</span></div>
+      <div id="quizBox" style="background:var(--inp); border-radius:20px; padding:20px; text-align:center; min-height:200px; display:grid; place-items:center; border:1px solid var(--line);">
+        <div id="qStart">
+          <b>Uji pemahaman materimu sekarang!</b><br><br>
+          <button style="background:var(--red); color:#fff;" onclick="startQuiz()">🚀 Mulai Kuis</button>
+        </div>
+        <div id="qRun" style="display:none; width:100%; text-align:left;">
+          <span class="chip" id="qNum">Soal 1</span>
+          <div id="qText" style="font-weight:700; margin:10px 0;">Pertanyaan...</div>
+          <div class="row"><button style="background:#14753a; color:#fff;" onclick="ansQuiz(true)">✔ Benar</button><button style="background:var(--red); color:#fff;" onclick="ansQuiz(false)">✖ Salah</button></div>
+        </div>
+        <div id="qEnd" style="display:none; text-align:center;">
+          <b style="font-size:1.2rem;">Kuis Selesai! 🎉</b>
+          <div id="qScore" style="color:var(--red); font-weight:800; margin:6px 0;">Skor: 100</div>
+          <button class="soft" onclick="startQuiz()">Ulangi Kuis</button>
+        </div>
+      </div>
+    </section>
+  </div>
+</section>
+
+<!-- PENGATURAN -->
+<section class="pg" id="pg-set">
+  <section class="card" style="max-width:500px">
+    <h2>Pengaturan Akun</h2>
+    <div class="row"><input type="text" id="nm" placeholder="Nama Kamu"></div>
+    <div class="row"><button class="soft" id="sample">Muat Contoh Data</button><button class="soft" id="wipe">Reset Semua</button></div>
+  </section>
+</section>
+</div></div>
+
+<!-- MODAL TAMBAH JADWAL -->
+<div class="modal" id="mC"><section class="card">
+  <button class="mx soft" data-close>✕</button>
+  <h2>Tambah Jadwal</h2>
+  <div class="row"><input type="text" id="cName" placeholder="Mata Pelajaran"></div>
+  <div class="row"><input type="time" id="cStart"><input type="time" id="cEnd"></div>
+  <div class="days" id="cDays"></div>
+  <div class="row"><button id="cAdd">Simpan</button></div>
+  <p class="hint" id="cMsg"></p>
+</section></div>
+
+<!-- MODAL TAMBAH TUGAS -->
+<div class="modal" id="mT"><section class="card">
+  <button class="mx soft" data-close>✕</button>
+  <h2>Tambah Tugas</h2>
+  <div class="row"><select id="tSub"></select></div>
+  <div class="row"><input type="text" id="tTitle" placeholder="Judul Tugas"></div>
+  <div class="row"><input type="date" id="tDue"></div>
+  <div class="row"><button id="tAdd">Simpan</button></div>
+  <p class="hint" id="tMsg"></p>
+</section></div>
+
+<!-- FLOATING AI CHAT -->
+<button id="aiFab" class="fab"><svg class="ic"><use href="#i-spark"/></svg>Asisten AI</button>
+<section class="aip card" id="ai" hidden>
+  <div class="hd" style="margin:0">
+    <b>AI Chat Cepat</b>
+    <button class="soft" id="aiX" style="padding:2px 8px; font-size:.75rem;">✕</button>
+  </div>
+  <div class="msgs" id="msgs"></div>
+  <div class="ain"><input type="text" id="aiIn" placeholder="Tanya apa saja..."><button id="aiGo">Kirim</button></div>
+</section>
+
+<script>
+const $=id=>document.getElementById(id), K="kelasku-master-v3", DN=["Senin","Selasa","Rabu","Kamis","Jumat","Sabtu","Minggu"];
+let D={c:[],t:[],ann:[],notes:[],xp:0,level:1,name:"",target:"",quizClaimed:false};
+try{D=Object.assign(D,JSON.parse(localStorage.getItem(K))||{})}catch(e){}
+const save=()=>{try{localStorage.setItem(K,JSON.stringify(D))}catch(e){}render()};
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const mn=s=>{const[h,m]=s.split(":");return +h*60+ +m},fm=s=>s.replace(":","."),p2=n=>String(n).padStart(2,"0");
+const todayIdx=()=>(new Date().getDay()+6)%7;
+
+function addXp(amt){
+  D.xp = (D.xp || 0) + amt;
+  let req = D.level * 100;
+  while(D.xp >= req){
+    D.xp -= req; D.level++;
+    alert(`🎉 Selamat! Kamu naik ke Level ${D.level}!`);
+    req = D.level * 100;
+  }
+  save();
+}
+
+// Notifikasi Alarm Interaktif
+if("Notification" in window && Notification.permission !== "granted"){
+  Notification.requestPermission();
+}
+function triggerAlarm(title, body){
+  if("Notification" in window && Notification.permission === "granted"){
+    new Notification(title, {body});
+  }
+}
+
+// Quiz State
+let qIdx=0, qScore=0, qList=[
+  {q:"Apakah fungsi utama Smart Planner adalah mengatur jadwal dan tugas?", ans:true},
+  {q:"Apakah metode Pomodoro menggunakan waktu fokus 10 jam tanpa henti?", ans:false},
+  {q:"Apakah Class Hub memudahkan berbagi catatan antar teman sekelas?", ans:true}
+];
+function startQuiz(){
+  qIdx=0; qScore=0; D.quizClaimed=false;
+  $("qStart").style.display="none"; $("qEnd").style.display="none"; $("qRun").style.display="block";
+  loadQ();
+}
+function loadQ(){
+  if(qIdx<qList.length){
+    $("qNum").textContent=`Soal ${qIdx+1} dari ${qList.length}`;
+    $("qText").textContent=qList[qIdx].q;
+  } else {
+    $("qRun").style.display="none"; $("qEnd").style.display="block";
+    $("qScore").textContent=`Skor: ${qScore} / 100`;
+    if(!D.quizClaimed && qScore>=70){ addXp(50); D.quizClaimed=true; save(); }
+  }
+}
+function ansQuiz(val){
+  if(val === qList[qIdx].ans) qScore += Math.round(100/qList.length);
+  qIdx++; loadQ();
+}
+
+// Render Utama
+function render(){
+  const now=new Date(),ti=todayIdx(),n=now.getHours()*60+now.getMinutes();
+  $("hi").innerHTML=`Hai${D.name?", "+esc(D.name):""}!<br>Siap hadapi <em>kuliah & tugas</em> hari ini?`;
+  $("dt").textContent=now.toLocaleDateString("id-ID",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
+  
+  $("userLevel").textContent="Lv."+D.level;
+  $("userXpText").textContent=D.xp+" / "+(D.level*100)+" XP";
+  $("xpBar").style.width=Math.min(100, Math.round(D.xp/(D.level*100)*100))+"%";
+
+  const by=i=>D.c.filter(c=>c.day===i).sort((a,b)=>mn(a.start)-mn(b.start));
+  const td=by(ti), open=D.t.filter(t=>!t.done), withDue=open.filter(t=>t.due).sort((a,b)=>a.due.localeCompare(b.due));
+  
+  $("fK").textContent=td.length; $("fT").textContent=open.length;
+
+  // Cek Alarm Kelas
+  const notes=[];
+  td.forEach(c=>{
+    const diff = mn(c.start) - n;
+    if(diff > 0 && diff <= 60){
+      notes.push(["bell", `Alarm: ${c.name}`, `Dimulai 1 jam lagi (${fm(c.start)})`, `${diff} menit`]);
+      triggerAlarm("Pengingat Kelas", `${c.name} akan dimulai pukul ${fm(c.start)}`);
+    }
+  });
+  withDue.slice(0,2).forEach(t=>notes.push(["clock","Tenggat Tugas",`${t.subject}: ${t.title}`,t.due]));
+  $("nC").textContent=notes.length;
+  $("notes").innerHTML=notes.length?notes.map((x,i)=>`<div class="note${i?"":" hi"}"><span class="nic">${ico(x[0])}</span><div><b>${x[1]}</b><small>${esc(x[2])}</small></div><span class="chip">${esc(x[3])}</span></div>`).join(""):'<div class="empty">Tidak ada alarm aktif.</div>';
+
+  // Rekomendasi Tugas
+  const nt=withDue[0]||open[0];
+  $("near").innerHTML=nt?`<b>${esc(nt.subject)}</b><div style="font-weight:700;margin:4px 0">${esc(nt.title)}</div><small style="color:var(--mute)">Saran dikerjakan lebih dulu</small><div class="row"><button onclick="finTask('${nt.id}')">Selesaikan (+20 XP)</button></div>`:'<div class="empty">Semua tugas selesai! Luar biasa.</div>';
+
+  // Planner
+  $("schedList").innerHTML=D.c.length?D.c.map(c=>`<div class="tk"><span><b>${esc(c.name)}</b> (${DN[c.day]})<br><small>${fm(c.start)} - ${fm(c.end)}</small></span><button class="x" onclick="delC('${c.id}')">Hapus</button></div>`).join(""):'<div class="empty">Belum ada jadwal.</div>';
+
+  const tot=D.t.length, dn=D.t.filter(t=>t.done).length, pc=tot?Math.round(dn/tot*100):0;
+  $("pt").textContent=`Selesai ${dn} dari ${tot} tugas (${pc}%)`; $("pb").style.width=pc+"%";
+  const only=$("onlyOpen").checked;
+  $("taskList").innerHTML=D.t.length?D.t.filter(t=>!only||!t.done).map(t=>`<div class="tk"><input type="checkbox" ${t.done?"checked":""} onchange="toggleTask('${t.id}',this.checked)"><span class="tt"><b>[${esc(t.subject)}]</b> ${esc(t.title)}</span><button class="x" onclick="delT('${t.id}')">✕</button></div>`).join(""):'<div class="empty">Belum ada tugas.</div>';
+
+  // Class Hub
+  $("annList").innerHTML=D.ann.length?D.ann.map(a=>`<div class="tk"><div><b>📢 ${esc(a.t)}</b><p style="margin:2px 0 0;font-size:0.85rem">${esc(a.c)}</p></div></div>`).join(""):'<div class="empty">Belum ada pengumuman.</div>';
+  $("noteList").innerHTML=D.notes.length?D.notes.map(n=>`<div class="tk"><div><b>📄 ${esc(n.t)}</b><p style="margin:2px 0 0;font-size:0.85rem">${esc(n.c)}</p></div></div>`).join(""):'<div class="empty">Belum ada catatan dibagikan.</div>';
+
+  const subs=[...new Set([...D.c.map(c=>c.name),...D.t.map(t=>t.subject)])];
+  $("tSub").innerHTML=subs.length?subs.map(s=>`<option>${esc(s)}</option>`).join(""):"<option>Tambah jadwal dulu</option>";
+}
+
+// Aksi Data
+function finTask(id){const t=D.t.find(x=>String(x.id)===String(id));if(t&&!t.done){t.done=true;addXp(20);save();}}
+function toggleTask(id,st){const t=D.t.find(x=>String(x.id)===String(id));if(t){t.done=st;if(st)addXp(20);save();}}
+function delC(id){D.c=D.c.filter(c=>String(c.id)!==String(id));save();}
+function delT(id){D.t=D.t.filter(t=>String(t.id)!==String(id));save();}
+
+$("cDays").innerHTML=DN.map((d,i)=>`<label><input type="checkbox" value="${i}"${i===todayIdx()?" checked":""}>${d.slice(0,3)}</label>`).join("");
+$("cAdd").onclick=()=>{
+  const name=$("cName").value.trim(), s=$("cStart").value, e=$("cEnd").value, ds=[...document.querySelectorAll("#cDays input:checked")].map(x=>+x.value);
+  if(!name||!s||!e||!ds.length)return $("cMsg").textContent="Lengkapi data jadwal.";
+  ds.forEach(d=>D.c.push({id:Date.now()+d+Math.random(),name,day:d,start:s,end:e}));
+  $("cName").value=""; $("cMsg").textContent=""; closeM(); save(); addXp(10);
+};
+$("tAdd").onclick=()=>{
+  const sub=$("tSub").value, title=$("tTitle").value.trim();
+  if(!sub||!title)return $("tMsg").textContent="Lengkapi data tugas.";
+  D.t.push({id:Date.now()+Math.random(),subject:sub,title,due:$("tDue").value,done:false});
+  $("tTitle").value=""; $("tMsg").textContent=""; closeM(); save(); addXp(15);
+};
+
+function addAnnouncement(){
+  const t=prompt("Judul Pengumuman:"), c=prompt("Isi Pengumuman:");
+  if(t&&c){D.ann.unshift({t,c}); save(); addXp(10);}
+}
+function shareNote(){
+  const t=prompt("Judul Catatan/Materi:"), c=prompt("Ringkasan Materi:");
+  if(t&&c){D.notes.unshift({t,c}); save(); addXp(20);}
+}
+
+// AI Tutor Pintar (Real Response sesuai mode)
+function askAITutor(){
+  const q=$("tutorIn").value.trim(), mode=$("aiMode").value;
+  if(!q)return;
+  let res="";
+  if(mode==="simple"){
+    res=`[Mode Super Simpel]: Inti dari "${q}" adalah konsep dasar yang ringkas, mudah diingat, dan langsung menjawab inti permasalahan tanpa rumus rumit.`;
+  } else if(mode==="step"){
+    res=`[Mode Langkah demi Langkah untuk "${q}"]: \n1. Analisis data atau soal yang diketahui.\n2. Terapkan rumus atau hukum dasar yang relevan.\n3. Hitung atau uraikan secara runtut hingga mendapatkan hasil akhir.`;
+  } else {
+    res=`[Mode Pembahasan Lengkap]: Kajian komprehensif mengenai "${q}". Mencakup teori dasar, pembuktian rumus, studi kasus, serta contoh soal latihan terstruktur untuk penguasaan materi secara menyeluruh.`;
+  }
+  $("tutorOut").innerHTML=`<b>Topik: ${esc(q)}</b><br><p style="margin:6px 0 0">${esc(res)}</p>`;
+  $("tutorIn").value="";
+}
+
+// Focus Pomodoro Timer
+let timerInt=null, timeSec=1500, timerRun=false;
+$("pStart").onclick=()=>{
+  if(timerRun){
+    clearInterval(timerInt); timerRun=false; $("pStart").textContent="▶ Lanjutkan";
+  } else {
+    timerRun=true; $("pStart").textContent="⏸ Jeda";
+    timerInt=setInterval(()=>{
+      timeSec--;
+      let m=Math.floor(timeSec/60), s=timeSec%60;
+      $("pTimer").textContent=`${p2(m)}:${p2(s)}`;
+      if(timeSec<=0){
+        clearInterval(timerInt); timerRun=false; alert("Sesi Pomodoro selesai! +30 XP");
+        addXp(30); timeSec=1500; $("pStart").textContent="▶ Mulai";
+      }
+    },1000);
+  }
+};
+$("pReset").onclick=()=>{clearInterval(timerInt); timerRun=false; timeSec=1500; $("pTimer").textContent="25:00"; $("pStart").textContent="▶ Mulai";};
+function saveTarget(){
+  const v=$("targetIn").value.trim();
+  if(v){D.target=v; save(); $("targetOut").textContent=`Target aktif: "${v}"`;}
+}
+
+// AI Floating Chat
+function bubble(k,t){const d=document.createElement("div");d.className="bb "+k;d.textContent=t;$("msgs").appendChild(d);$("msgs").scrollTop=1e9;}
+function sendChat(txt){
+  if(!txt)return; bubble("u",txt); $("aiIn").value="";
+  setTimeout(()=>{
+    let ans="Aku siap membantu menjawab pertanyaan seputar materi kuliah maupun tugasmu!";
+    const l=txt.toLowerCase();
+    if(l.includes("tugas")) ans=`Kamu memiliki ${D.t.filter(x=>!x.done).length} tugas aktif saat ini.`;
+    else if(l.includes("jadwal")) ans=`Jadwal perkuliahan sudah tersimpan rapi di menu Smart Planner.`;
+    else ans=`Menjawab "${txt}": Pahami konsep dasarnya secara runtut dan kerjakan latihan soal secara berkala untuk hasil terbaik.`;
+    bubble("a",ans);
+  },500);
+}
+$("aiFab").onclick=()=>{$("ai").hidden=false; $("aiFab").hidden=true; $("aiIn").focus();};
+$("aiX").onclick=()=>{$("ai").hidden=true; $("aiFab").hidden=false;};
+$("aiGo").onclick=()=>sendChat($("aiIn").value);
+$("aiIn").onkeydown=e=>{if(e.key==="Enter")sendChat($("aiIn").value)};
+
+$("sample").onclick=()=>{
+  const c=(n,d,s,e)=>({id:Math.random(),name:n,day:d,start:s,end:e});
+  D.c=[c("Algoritma & Pemrograman",0,"07:30","09:00"),c("Matematika Diskrit",1,"09:15","10:45")];
+  D.t=[{id:1,subject:"Algoritma & Pemrograman",title:"Praktikum Bahasa Go",due:"2026-10-15",done:false}];
+  D.ann=[{t:"UTS Semester",content:"Ujian Tengah Semester dimulai minggu depan.",c:"Ujian"}];
+  save();
+};
+$("wipe").onclick=()=>{if(confirm("Reset semua data?")){D={c:[],t:[],ann:[],notes:[],xp:0,level:1,name:"",target:"",quizClaimed:false};save();}};
+
+function th(m){document.documentElement.dataset.theme=m; try{localStorage.setItem("kelasku-th",m)}catch(e){} $("thL").classList.toggle("on",m==="light"); $("thD").classList.toggle("on",m==="dark");}
+let th0=""; try{th0=localStorage.getItem("kelasku-th")||""}catch(e){}
+th(th0||(matchMedia("(prefers-color-scheme:dark)").matches?"dark":"light"));
+$("thL").onclick=()=>th("light"); $("thD").onclick=()=>th("dark");
+
+const PG=["home","planner","hub","focus","aihub","set"];
+function go(p){
+  if(!PG.includes(p))p="home";
+  document.querySelectorAll(".pg").forEach(e=>e.classList.toggle("on",e.id=="pg-"+p));
+  document.querySelectorAll(".sb,.nl").forEach(e=>e.classList.toggle("on",e.dataset.pg===p));
+  window.scrollTo(0,0);
+}
+document.addEventListener("click",e=>{
+  const t=e.target.closest("[data-pg],[data-open],[data-close]"); if(!t)return;
+  const d=t.dataset;
+  if(d.pg)go(d.pg); if(d.open)openM(d.open); if("close" in d)closeM();
+});
+function openM(id){closeM(); $(id).classList.add("on");}
+function closeM(){document.querySelectorAll(".modal").forEach(m=>m.classList.remove("on"));}
+document.querySelectorAll(".modal").forEach(m=>m.addEventListener("click",e=>{if(e.target===m)closeM();}));
+
+window.onload=()=>{
+  setTimeout(()=>{$("loadingScreen").classList.add("hide");}, 500);
+  render();
+  bubble("a","Halo! Asisten AI siap membantumu belajar hari ini.");
+};
+setInterval(render,30000);
+</script>
+</body>
+</html>
